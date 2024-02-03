@@ -17,6 +17,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using Microsoft.EntityFrameworkCore;
 
 namespace AndroidStorageAccessor
 {
@@ -25,7 +26,8 @@ namespace AndroidStorageAccessor
     {
         private ProgressBar loaderProgressBar;
         private Button insertButton;
-        protected override void OnCreate(Bundle savedInstanceState)
+        private string _dbPath = "";
+        protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
@@ -38,14 +40,28 @@ namespace AndroidStorageAccessor
             FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
             fab.Click += FabOnClick;
 
+            // Initialize SQLite database
+            _dbPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "storageaccessor.db");
+
+            try
+            {
+                using var dbContext = new ApplicationDbContext(_dbPath);
+
+                await dbContext.Database.MigrateAsync();
+
+            }
+            catch (Exception ex)
+            {
+            }
+
             insertButton = FindViewById<Button>(Resource.Id.insertBtn);
             insertButton.Click += InsertButton_Click;
         }
 
-        private void InsertButton_Click(object sender, EventArgs e)
+        private async void InsertButton_Click(object sender, EventArgs e)
         {
             // Implement the logic to get file paths and insert them into SQLite database
-            InsertFilesIntoDatabaseAsync();
+            await InsertFilesIntoDatabaseAsync();
         }
 
         private async Task InsertFilesIntoDatabaseAsync()
@@ -72,28 +88,15 @@ namespace AndroidStorageAccessor
             {
                 filePaths = GetDirectoriesAndFiles((Android.OS.Environment.ExternalStorageDirectory.AbsolutePath)).ToList();
             });
-            // Get all files from internal storage
 
-            //var internalFiles = Directory.GetFiles(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath);
 
-            //filePaths =  filePaths.Concat(internalFiles).ToList();
 
-            // Initialize SQLite database
-            string dbPath = Path.Combine(FilesDir.AbsolutePath, "YourDatabaseName.db");
-            var db = new SQLiteConnection(dbPath);
 
-            // Create a table if not exists
-            db.CreateTable<FileItem>();
 
             // Insert file paths into the database
-            foreach (var filePath in filePaths)
-            {
-                var fileItem = new FileItem { FilePath = filePath.Path };
-                db.Insert(fileItem);
-            }
+            InsertFileItem(filePaths.Select(filePath=> new FileItem { FilePath = filePath.Path, IsDirectory = filePath.IsDirectory }).ToList());
 
-            // Close the database connection
-            db.Close();
+
 
             loaderProgressBar.Visibility = Android.Views.ViewStates.Gone;
             insertButton.Enabled = true;
@@ -125,6 +128,23 @@ namespace AndroidStorageAccessor
             result.AddRange(Files);
 
             return result;
+        }
+
+
+        private async void InsertFileItem(List<FileItem> items)
+        {
+            try
+            {
+
+                using var db = new ApplicationDbContext(_dbPath);
+                await db.FileItems.AddRangeAsync(items);
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Toast.MakeText(this, ex.Message, ToastLength.Long).Show();
+                return;
+            }
         }
 
         public class Item

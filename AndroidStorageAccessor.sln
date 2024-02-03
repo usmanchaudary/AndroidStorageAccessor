@@ -5,6 +5,10 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AndroidStorageAccessor", "AndroidStorageAccessor\AndroidStorageAccessor.csproj", "{156E4B41-C0AE-4F07-8E9D-9F530FC831FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AndroidStorageAccessor.Model", "AndroidStorageAccessor.Model\AndroidStorageAccessor.Model.csproj", "{BC6CAB47-F20C-4003-BE7F-872882883D9B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AndroidStorageAccessor.Startup", "AndroidStorageAccessor.Startup\AndroidStorageAccessor.Startup.csproj", "{FC597BAA-358A-46F3-BB1B-0A52A5133853}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,6 +21,14 @@ Global
 		{156E4B41-C0AE-4F07-8E9D-9F530FC831FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{156E4B41-C0AE-4F07-8E9D-9F530FC831FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{156E4B41-C0AE-4F07-8E9D-9F530FC831FB}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{BC6CAB47-F20C-4003-BE7F-872882883D9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC6CAB47-F20C-4003-BE7F-872882883D9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC6CAB47-F20C-4003-BE7F-872882883D9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC6CAB47-F20C-4003-BE7F-872882883D9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC597BAA-358A-46F3-BB1B-0A52A5133853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC597BAA-358A-46F3-BB1B-0A52A5133853}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC597BAA-358A-46F3-BB1B-0A52A5133853}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC597BAA-358A-46F3-BB1B-0A52A5133853}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
