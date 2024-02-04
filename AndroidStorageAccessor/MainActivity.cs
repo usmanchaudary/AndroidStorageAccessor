@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
+using Android.Content;
 
 namespace AndroidStorageAccessor
 {
@@ -89,14 +90,18 @@ namespace AndroidStorageAccessor
                 filePaths = GetDirectoriesAndFiles((Android.OS.Environment.ExternalStorageDirectory.AbsolutePath)).ToList();
             });
 
-
-
-
-
+            var availableStorages = GetAvaliableStorages(this);
+            if (availableStorages.Any())
+            {
+                //because we ignored the emulated storage so we can get the first item
+                string sdCardPath = availableStorages.FirstOrDefault();
+                if (!string.IsNullOrEmpty(sdCardPath))
+                {
+                    filePaths.AddRange(GetDirectoriesAndFiles(sdCardPath));
+                }
+            }
             // Insert file paths into the database
-            InsertFileItem(filePaths.Select(filePath=> new FileItem { FilePath = filePath.Path, IsDirectory = filePath.IsDirectory }).ToList());
-
-
+            InsertFileItem(filePaths.Select(filePath => new FileItem { FilePath = filePath.Path, IsDirectory = filePath.IsDirectory }).ToList());
 
             loaderProgressBar.Visibility = Android.Views.ViewStates.Gone;
             insertButton.Enabled = true;
@@ -122,6 +127,7 @@ namespace AndroidStorageAccessor
                     var files = Directory.GetFiles(subDirectory);
                     Files.AddRange(files.Select(x => new Item { Path = x, IsDirectory = false }));
                 }
+                Files.AddRange(Directory.GetFiles(directory).Select(x => new Item { Path = x, IsDirectory = false }));
                 result.Add(new Item { Path = directory, IsDirectory = true });
             }
 
@@ -129,7 +135,34 @@ namespace AndroidStorageAccessor
 
             return result;
         }
+        public List<string> GetAvaliableStorages(Context context)
+        {
+            List<string> list = null;
+            try
+            {
 
+                var storageManager = (Android.OS.Storage.StorageManager)context.GetSystemService(Context.StorageService);
+
+                var volumeList = (Java.Lang.Object[])storageManager.Class.GetDeclaredMethod("getVolumeList").Invoke(storageManager);
+
+                list = new List<string>();
+
+                foreach (var storage in volumeList)
+                {
+                    Java.IO.File info = (Java.IO.File)storage.Class.GetDeclaredMethod("getPathFile").Invoke(storage);
+
+                    if (!(bool)storage.Class.GetDeclaredMethod("isEmulated").Invoke(storage) && info.TotalSpace > 0)
+                    {
+                        list.Add(info.Path);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+            return list;
+        }
 
         private async void InsertFileItem(List<FileItem> items)
         {
