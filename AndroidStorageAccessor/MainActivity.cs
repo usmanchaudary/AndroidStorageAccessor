@@ -123,6 +123,11 @@ namespace AndroidStorageAccessor
 
             foreach (var directory in directories)
             {
+                //ignore Android directory
+                if (directory.Contains("Android"))
+                {
+                    continue;
+                }
                 var subDirectories = Directory.GetDirectories(directory, "*", SearchOption.AllDirectories);
                 //add all subDirectories paths in results
                 foreach (var subDirectory in subDirectories)
