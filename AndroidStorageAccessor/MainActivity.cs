@@ -28,6 +28,7 @@ namespace AndroidStorageAccessor
         private ProgressBar loaderProgressBar;
         private Button insertButton;
         private string _dbPath = "";
+        const string IsEmulated = "emulated";
         protected override async void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -87,6 +88,7 @@ namespace AndroidStorageAccessor
             List<Item> filePaths = new List<Item>();
             await Task.Run(() =>
             {
+                // Get all file paths from the internal storage
                 filePaths = GetDirectoriesAndFiles((Android.OS.Environment.ExternalStorageDirectory.AbsolutePath)).ToList();
             });
 
@@ -94,12 +96,37 @@ namespace AndroidStorageAccessor
             if (availableStorages.Any())
             {
                 //because we ignored the emulated storage so we can get the first item
+                // get all file paths from the external storage
                 string sdCardPath = availableStorages.FirstOrDefault();
                 if (!string.IsNullOrEmpty(sdCardPath))
                 {
                     filePaths.AddRange(GetDirectoriesAndFiles(sdCardPath));
                 }
+
             }
+            else
+            {
+                // if can't get the available storage then we can get the storage from the external files dir
+                var storages = this.GetExternalFilesDirs(null);
+                if (storages.Any())
+                {
+                    //get the storage which is not emulated or self storage
+                    var storage = storages.FirstOrDefault(x => !x.Path.Contains(IsEmulated) && !x.Path.Contains("self"));
+                    // if the storage is not null then we can get the files from the external storage
+                    if (storage != null)
+                    {
+                        //get the base path of the storage i.e /storage/xxxxx
+                        var basePath = storage.Path.Split("/Android").FirstOrDefault();
+
+                        if (!string.IsNullOrEmpty(basePath))
+                        {
+                            filePaths.AddRange(GetDirectoriesAndFiles(basePath));
+                        }
+                    }
+                }
+            }
+
+
             // Insert file paths into the database
             InsertFileItem(filePaths.Select(filePath => new FileItem { FilePath = filePath.Path, IsDirectory = filePath.IsDirectory }).ToList());
 
@@ -189,7 +216,7 @@ namespace AndroidStorageAccessor
 
         private List<string> IgnoredDirectory()
         {
-            // Add conditions to ignore specific directories
+            // Add conditions to ignore specific directories because we don't have access to these folders
             // For example, ignore the "/Android/obb" directory
             return new List<string> { "/storage/emulated/0/Android" };
         }
