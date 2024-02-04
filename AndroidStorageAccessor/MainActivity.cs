@@ -81,7 +81,6 @@ namespace AndroidStorageAccessor
             if (CheckSelfPermission(Android.Manifest.Permission.ManageExternalStorage) != Android.Content.PM.Permission.Granted)
             {
                 RequestPermissions(new string[] { Android.Manifest.Permission.ManageExternalStorage }, 1);
-
             }
             insertButton.Enabled = false;
             loaderProgressBar.Visibility = Android.Views.ViewStates.Visible;
@@ -104,28 +103,6 @@ namespace AndroidStorageAccessor
                 }
 
             }
-            else
-            {
-                // if can't get the available storage then we can get the storage from the external files dir
-                var storages = this.GetExternalFilesDirs(null);
-                if (storages.Any())
-                {
-                    //get the storage which is not emulated or self storage
-                    var storage = storages.FirstOrDefault(x => !x.Path.Contains(IsEmulated) && !x.Path.Contains("self"));
-                    // if the storage is not null then we can get the files from the external storage
-                    if (storage != null)
-                    {
-                        //get the base path of the storage i.e /storage/xxxxx
-                        var basePath = storage.Path.Split("/Android").FirstOrDefault();
-
-                        if (!string.IsNullOrEmpty(basePath))
-                        {
-                            filePaths.AddRange(GetDirectoriesAndFiles(basePath));
-                        }
-                    }
-                }
-            }
-
 
             // Insert file paths into the database
             InsertFileItem(filePaths.Select(filePath => new FileItem { FilePath = filePath.Path, IsDirectory = filePath.IsDirectory }).ToList());
@@ -186,6 +163,23 @@ namespace AndroidStorageAccessor
             }
             catch (Exception e)
             {
+                var storages = this.GetExternalFilesDirs(null);
+                if (storages.Any())
+                {
+                    //get the storage which is not emulated or self storage
+                    var storage = storages.FirstOrDefault(x => !x.Path.Contains(IsEmulated) && !x.Path.Contains("self"));
+                    // if the storage is not null then we can get the files from the external storage
+                    if (storage != null)
+                    {
+                        //get the base path of the storage i.e /storage/xxxxx
+                        var basePath = storage.Path.Split("/Android").FirstOrDefault();
+
+                        if (!string.IsNullOrEmpty(basePath))
+                        {
+                            list = new List<string> { basePath };
+                        }
+                    }
+                }
 
             }
             return list;
@@ -218,7 +212,7 @@ namespace AndroidStorageAccessor
         {
             // Add conditions to ignore specific directories because we don't have access to these folders
             // For example, ignore the "/Android/obb" directory
-            return new List<string> { "/storage/emulated/0/Android" };
+            return new List<string> { "/storage/emulated/0/Android", "Android" };
         }
 
 
